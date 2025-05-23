@@ -20,8 +20,6 @@ const server = async () => {
         resolvers,
     });
     await server.start();
-    // app.use(bodyParser.json({ limit: '10mb' }));
-    // app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
     app.use(cors({
         origin: [process.env.ORIGIN],
         methods: ['GET', 'POST', 'OPTIONS'],

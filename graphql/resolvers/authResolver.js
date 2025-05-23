@@ -108,11 +108,11 @@ const authResolver = {
         },
         async logout(_, { input }, { res }) {
             try {
-                res.cookie("token", token, {
+                res.cookie("token", "", {
                     httpOnly: true,
                     secure: true,
                     sameSite: "None",
-                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                    maxAge: 0
                 });
                 return { message: "Logout successful" };
             } catch (error) {
