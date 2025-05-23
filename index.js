@@ -5,54 +5,40 @@ const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
 const { typeDefs, resolvers } = require('./graphql');
 const cookieParser = require('cookie-parser');
-const path = require('path');
-const uploadRoute = require('./routes/upload');
+const bodyParser = require('body-parser');
 const setupSocket = require('./socket');
 
+
+// Middlewares
+const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 4000;
 
-const app = express();
-
-const startServer = async () => {
-    // Initialize Apollo Server
-    const apolloServer = new ApolloServer({
+const server = async () => {
+    const server = new ApolloServer({
         typeDefs,
         resolvers,
     });
-    await apolloServer.start();
-
-    // CORS Middleware (can be redundant if vercel.json headers work fully)
+    await server.start();
+    // app.use(bodyParser.json({ limit: '10mb' }));
+    // app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
     app.use(cors({
-        origin: 'https://chat-app-frontend-dkfz.vercel.app',
-        credentials: true,
+        origin: [process.env.ORIGIN],
         methods: ['GET', 'POST', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name']
+        allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
+        credentials: true,
     }));
-
-    // Other middlewares
     app.use(cookieParser());
     app.use(express.json());
-
-    // Serve static files (uploads)
-    app.use('/uploads', express.static(path.join(__dirname, './uploads')));
-
-    // Upload route
-    app.use('/api', uploadRoute);
-
-    // Apollo GraphQL middleware
-    app.use('/graphql', expressMiddleware(apolloServer, {
-        context: async ({ req, res }) => ({ req, res }),
+    app.use('/graphql', expressMiddleware(server, {
+        context: async ({ req, res }) => ({ req, res })
     }));
+}
 
-    // Start server
-    const serverInst = app.listen(PORT, () => {
-        console.log(`🚀 Server Ready at http://localhost:${PORT}`);
-        console.log(`🔗 GraphQL at http://localhost:${PORT}/graphql`);
-    });
+const serverInst = app.listen(PORT, () => {
+    console.log(`Server Ready At http://localhost:${PORT}`);
+    console.log(`Graphql Ready At http://localhost:${PORT}/graphql`);
+});
 
-    // Setup Socket.IO
-    setupSocket(serverInst);
-};
-
-startServer();
+setupSocket(serverInst);
+server();
