@@ -39,14 +39,18 @@ const startServer = async () => {
     app.use('/api', uploadRoute);
 
     // Apollo GraphQL endpoint
-    app.use('/graphql', expressMiddleware(apolloServer, {
+    app.use('/graphql', cors({
+        origin: process.env.ORIGIN,
+        methods: ['GET', 'POST', 'OPTIONS'],
+        credentials: true,
+    }), expressMiddleware(apolloServer, {
         context: async ({ req, res }) => ({ req, res }),
     }));
 
     // Start HTTP server
     const serverInst = app.listen(PORT, () => {
-        console.log(`Server Ready At http://localhost:${PORT}`);
-        console.log(`Graphql Ready At http://localhost:${PORT}/graphql`);
+        console.log(`Server Ready At ${PORT}`);
+        console.log(`Graphql Ready At ${PORT}/graphql`);
     });
 
     // Setup socket
