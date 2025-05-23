@@ -1,0 +1,29 @@
+input CreateMessageInput {
+  senderId: String!
+  recipientId: ID!
+  content: String!
+  messageType: String
+  fileUrl: String
+}
+
+type Message {
+  id: ID!
+  content: String
+  messageType: String
+  fileUrl: String
+  createdAt: String
+  senderId: String!
+  recipientId: String!
+}
+
+input GetMessagesInput {
+  senderId: ID!
+}
+  
+type Query {
+  getMessage(input: GetMessagesInput!): [Message!]!
+}
+
+type Mutation {
+  createMessage(input: CreateMessageInput!): Message
+}

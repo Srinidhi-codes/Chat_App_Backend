@@ -1,0 +1,58 @@
+# Input type for creating a new channel
+input CreateChannelInput {
+  name: String!
+  members: [String!]!
+}
+
+# The root query type
+type Query {
+  getUserChannels: GetUserChannelsResponse!
+}
+
+# The root mutation type
+type Mutation {
+  createChannel(input: CreateChannelInput!): CreateChannelResponse!
+}
+
+# Response type for createChannel mutation
+type CreateChannelResponse {
+  channel: Channel!
+}
+
+# Response type for getUserChannels query
+type GetUserChannelsResponse {
+  channels: [Channel!]!
+}
+
+# Channel entity
+type Channel {
+  id: String!
+  name: String!
+  members: [User!]!
+  admin: User!
+  messages: [Message!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+# User entity
+type User {
+  id: ID!
+  email: String!
+  firstName: String
+  lastName: String
+  image: String
+}
+
+# Message entity
+type Message {
+  id: ID!
+  sender: User!
+  recipient: User
+  channel: Channel
+  content: String
+  fileUrl: String
+  messageType: String
+  createdAt: String!
+}
+

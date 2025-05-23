@@ -1,0 +1,41 @@
+input SearchInput {
+  searchTerm: String!
+}
+
+type User {
+  id: ID!
+  email: String!
+  firstName: String
+  lastName: String
+  image: String
+  color: Int
+}
+
+type Contact {
+  id: ID!
+  email: String!
+  firstName: String
+  lastName: String
+  image: String
+  color: Int
+  lastMessageTime: String!
+}
+
+type ContactOption {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: String
+  label: String
+  value: String
+}
+
+type Query {
+  searchContact(input: SearchInput!): [User!]!
+  getAllContacts: [ContactOption!]!
+  getContactsForDMList: [Contact!]!
+}
+
+type Mutation {
+  addUser(name: String!): User!
+}
