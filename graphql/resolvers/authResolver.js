@@ -47,7 +47,7 @@ const authResolver = {
                 });
 
                 res.cookie("token", token, {
-                    secure: true,
+                    secure: false,
                     sameSite: "None",
                     maxAge: 7 * 24 * 60 * 60 * 1000,
                 });
@@ -91,7 +91,7 @@ const authResolver = {
 
                 // Set token in cookie
                 res.cookie("token", token, {
-                    secure: true,
+                    secure: false,
                     sameSite: "None",
                     maxAge: 7 * 24 * 60 * 60 * 1000,
                 });
@@ -107,7 +107,7 @@ const authResolver = {
         async logout(_, { input }, { res }) {
             try {
                 res.cookie("token", "", {
-                    secure: true,
+                    secure: false,
                     sameSite: "None",
                     maxAge: 0
                 });
