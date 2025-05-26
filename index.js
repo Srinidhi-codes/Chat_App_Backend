@@ -21,7 +21,7 @@ const server = async () => {
     });
     await server.start();
     app.use(cors({
-        origin: ['*'],
+        origin: [process.env.ORIGIN],
         methods: ['GET', 'POST', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'x-apollo-operation-name'],
         credentials: true,

@@ -4,7 +4,7 @@ const { createMessage, updateMessage } = require("./services/messageService");
 const setupSocket = (server) => {
     const io = new Server(server, {
         cors: {
-            origin: '*',
+            origin: process.env.ORIGIN,
             credentials: true
         }
     });
