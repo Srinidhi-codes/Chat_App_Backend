@@ -15,7 +15,7 @@ type Message {
   senderId: String!
   recipientId: String!
   content: String
-  edited: Boolean
+  edited: Boolean!
 }
 
 input GetMessagesInput {
@@ -24,7 +24,7 @@ input GetMessagesInput {
 
 input UpdateMessageInput {
   id: ID!
-  edited: Boolean
+  edited: Boolean!
   content: String
 }
 

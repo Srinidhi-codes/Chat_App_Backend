@@ -29,6 +29,12 @@ async function updateMessage(input) {
             ...(content !== undefined && { content }),
             ...(edited !== undefined && { edited }),
         },
+        select: {
+            id: true,
+            content: true,
+            edited: true,
+            // other fields
+        }
     });
 }
 
