@@ -27,8 +27,11 @@ model user {
   messagesSent     messages[] @relation("MessagesSent")
   messagesReceived messages[] @relation("MessagesReceived")
 
-  channels      channel[] @relation("ChannelMembers")
-  adminChannels channel[] @relation("ChannelAdmin")
+  channels      channel[]  @relation("ChannelMembers")
+  adminChannels channel[]  @relation("ChannelAdmin")
+  messages      messages?  @relation(fields: [messagesId], references: [id])
+  readMessages  messages[] @relation("ReadMessages")
+  messagesId    String?
 }
 
 model messages {
@@ -39,12 +42,15 @@ model messages {
 
   messageType MessageType
   content     String?
+  edited      Boolean     @default(false)
   fileUrl     String?
   createdAt   DateTime    @default(now())
 
   sender    user     @relation("MessagesSent", fields: [senderId], references: [id])
   recipient user?    @relation("MessagesReceived", fields: [recipientId], references: [id])
   channel   channel? @relation("ChannelMessages", fields: [channelId], references: [id])
+  readBy    user[]   @relation("ReadMessages")
+  user      user[]
 }
 
 model channel {

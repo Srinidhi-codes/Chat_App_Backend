@@ -56,3 +56,6 @@ type Message {
   createdAt: String!
 }
 
+extend type Query {
+  searchChannel(input: SearchInput!): [Channel!]!
+}

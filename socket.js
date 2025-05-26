@@ -1,6 +1,5 @@
 const { Server } = require("socket.io");
-const messagesResolver = require("./graphql/resolvers/messageResolver");
-const { createMessage } = require('./services/messageService');
+const { createMessage, updateMessage } = require("./services/messageService");
 
 const setupSocket = (server) => {
     const io = new Server(server, {
@@ -10,6 +9,7 @@ const setupSocket = (server) => {
         }
     });
 
+    // userId -> socketId
     const userSocketMap = new Map();
 
     const disconnect = (socket) => {
@@ -17,6 +17,9 @@ const setupSocket = (server) => {
         for (const [userId, socketId] of userSocketMap.entries()) {
             if (socketId === socket.id) {
                 userSocketMap.delete(userId);
+
+                // Notify everyone that this user went offline
+                io.emit("userOffline", userId);
                 break;
             }
         }
@@ -36,6 +39,8 @@ const setupSocket = (server) => {
 
         try {
             const messageData = await createMessage(input);
+
+            // Send message to both sender and recipient if online
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit("receiveMessage", messageData);
             }
@@ -47,6 +52,22 @@ const setupSocket = (server) => {
         }
     };
 
+    const editMessage = async (editPayload) => {
+        try {
+            const updatedMessage = await updateMessage(editPayload);
+            const senderSocketId = userSocketMap.get(updatedMessage.senderId);
+            const recipientSocketId = userSocketMap.get(updatedMessage.recipientId);
+
+            if (senderSocketId) {
+                io.to(senderSocketId).emit("messageEdited", updatedMessage);
+            }
+            if (recipientSocketId && recipientSocketId !== senderSocketId) {
+                io.to(recipientSocketId).emit("messageEdited", updatedMessage);
+            }
+        } catch (error) {
+            console.error("Error editing message:", error.message);
+        }
+    };
 
     io.on("connection", (socket) => {
         const userId = socket.handshake.query.userId;
@@ -54,10 +75,20 @@ const setupSocket = (server) => {
         if (userId) {
             userSocketMap.set(userId, socket.id);
             console.log(`User connected with userId: ${userId} & socketId: ${socket.id}`);
+
+            // Notify all clients that this user is online
+            io.emit("userOnline", userId);
+
+            // Send current online users to the newly connected user
+            const onlineUsers = Array.from(userSocketMap.keys());
+            socket.emit("onlineUsers", onlineUsers);
         } else {
             console.log("User ID not provided during connection");
         }
+
         socket.on("sendMessage", sendMessage);
+        socket.on("editMessage", editMessage);
+
         socket.on("disconnect", () => disconnect(socket));
     });
 };

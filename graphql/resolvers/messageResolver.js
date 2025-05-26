@@ -1,46 +1,46 @@
 const prisma = require('../../config/database');
 const getAuthenticatedUser = require('../../helper/authHelper');
-const { createMessage } = require('../../services/messageService');
+const { createMessage, updateMessage } = require('../../services/messageService');
 
 const messagesResolver = {
     Query: {
-        async searchContact(_, { input }, { req }) {
-            try {
-                const sanitizedSearchTerm = input.searchTerm.trim();
-                const { id } = getAuthenticatedUser(req);
-                const contacts = await prisma.user.findMany({
-                    where: {
-                        id: {
-                            not: id,
-                        },
-                        OR: [
-                            {
-                                firstName: {
-                                    contains: sanitizedSearchTerm,
-                                    mode: "insensitive",
-                                },
-                            },
-                            {
-                                lastName: {
-                                    contains: sanitizedSearchTerm,
-                                    mode: "insensitive",
-                                },
-                            },
-                            {
-                                email: {
-                                    contains: sanitizedSearchTerm,
-                                    mode: "insensitive",
-                                },
-                            },
-                        ],
-                    },
-                });
+        // async searchContact(_, { input }, { req }) {
+        //     try {
+        //         const sanitizedSearchTerm = input.searchTerm.trim();
+        //         const { id } = getAuthenticatedUser(req);
+        //         const contacts = await prisma.user.findMany({
+        //             where: {
+        //                 id: {
+        //                     not: id,
+        //                 },
+        //                 OR: [
+        //                     {
+        //                         firstName: {
+        //                             contains: sanitizedSearchTerm,
+        //                             mode: "insensitive",
+        //                         },
+        //                     },
+        //                     {
+        //                         lastName: {
+        //                             contains: sanitizedSearchTerm,
+        //                             mode: "insensitive",
+        //                         },
+        //                     },
+        //                     {
+        //                         email: {
+        //                             contains: sanitizedSearchTerm,
+        //                             mode: "insensitive",
+        //                         },
+        //                     },
+        //                 ],
+        //             },
+        //         });
 
-                return contacts || []
-            } catch (error) {
-                throw new Error(error.message);
-            }
-        },
+        //         return contacts || []
+        //     } catch (error) {
+        //         throw new Error(error.message);
+        //     }
+        // },
 
         async getMessage(_, { input }, { req }) {
             try {
@@ -75,6 +75,9 @@ const messagesResolver = {
     Mutation: {
         async createMessage(_, { input }, { req }) {
             return await createMessage(input);
+        },
+        async updateMessage(_, { input }, { req }) {
+            return await updateMessage(input);
         },
     },
 };

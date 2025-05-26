@@ -28,7 +28,34 @@ const channelsResolver = {
             } catch (error) {
                 throw new Error(error.message);
             }
-        }
+        },
+        async searchChannel(_, { input }, { req }) {
+            try {
+                const { searchTerm } = input;
+                const { id: userId } = getAuthenticatedUser(req);
+
+                const channels = await prisma.channel.findMany({
+                    where: {
+                        name: {
+                            contains: searchTerm.trim(),
+                            mode: 'insensitive',
+                        },
+                        OR: [
+                            { adminId: userId },
+                            { members: { some: { id: userId } } }
+                        ]
+                    },
+                    include: {
+                        members: true,
+                        admin: true,
+                    }
+                });
+
+                return channels;
+            } catch (error) {
+                throw new Error(error.message);
+            }
+        },
     },
 
     Mutation: {

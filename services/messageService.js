@@ -20,4 +20,19 @@ async function createMessage(input) {
     return messageData;
 }
 
-module.exports = { createMessage };
+async function updateMessage(input) {
+    const { id, content, edited } = input;
+
+    return await prisma.messages.update({
+        where: { id },
+        data: {
+            content,
+            edited,
+        },
+    });
+}
+
+
+
+
+module.exports = { createMessage, updateMessage };
