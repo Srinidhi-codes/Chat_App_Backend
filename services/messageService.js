@@ -26,13 +26,10 @@ async function updateMessage(input) {
     return await prisma.messages.update({
         where: { id },
         data: {
-            content,
-            edited,
+            ...(content !== undefined && { content }),
+            ...(edited !== undefined && { edited }),
         },
     });
 }
-
-
-
 
 module.exports = { createMessage, updateMessage };
