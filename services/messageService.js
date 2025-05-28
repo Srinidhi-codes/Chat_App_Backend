@@ -22,20 +22,15 @@ async function createMessage(input) {
 
 async function updateMessage(input) {
     const { id, content, edited } = input;
-
-    return await prisma.messages.update({
+    const updatedMsg = await prisma.messages.update({
         where: { id },
         data: {
-            ...(content !== undefined && { content }),
-            ...(edited !== undefined && { edited }),
+            content,
+            edited,
         },
-        select: {
-            id: true,
-            content: true,
-            edited: true,
-            // other fields
-        }
+
     });
+    return { ...updatedMsg };
 }
 
 module.exports = { createMessage, updateMessage };
