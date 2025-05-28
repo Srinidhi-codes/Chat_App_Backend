@@ -12,6 +12,7 @@ type Message {
   messageType: String
   fileUrl: String
   createdAt: String
+  updatedAt: String
   senderId: String!
   recipientId: String!
   content: String
@@ -28,6 +29,10 @@ input UpdateMessageInput {
   content: String
 }
 
+input DeleteMessageInput {
+  id: ID!
+}
+
   
 type Query {
   getMessage(input: GetMessagesInput!): [Message!]!
@@ -36,4 +41,5 @@ type Query {
 type Mutation {
   createMessage(input: CreateMessageInput!): Message
   updateMessage(input: UpdateMessageInput!): Message
+  deleteMessage(input: DeleteMessageInput!): Message
 }

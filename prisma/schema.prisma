@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -45,6 +46,7 @@ model messages {
   edited      Boolean     @default(false)
   fileUrl     String?
   createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   sender    user     @relation("MessagesSent", fields: [senderId], references: [id])
   recipient user?    @relation("MessagesReceived", fields: [recipientId], references: [id])

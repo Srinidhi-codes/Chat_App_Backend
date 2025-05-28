@@ -33,4 +33,12 @@ async function updateMessage(input) {
     return { ...updatedMsg };
 }
 
-module.exports = { createMessage, updateMessage };
+async function deleteMessage(id) {
+    const deletedMsg = await prisma.messages.delete({
+        where: { id },
+    });
+    return { ...deletedMsg };
+}
+
+
+module.exports = { createMessage, updateMessage, deleteMessage };

@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-const { createMessage, updateMessage } = require("./services/messageService");
+const { createMessage, updateMessage, deleteMessage } = require("./services/messageService");
 
 const setupSocket = (server) => {
     const io = new Server(server, {
@@ -13,7 +13,7 @@ const setupSocket = (server) => {
     const userSocketMap = new Map();
 
     const disconnect = (socket) => {
-        console.log(`Client disconnected: ${socket.id}`);
+        // console.log(`Client disconnected: ${socket.id}`);
         for (const [userId, socketId] of userSocketMap.entries()) {
             if (socketId === socket.id) {
                 userSocketMap.delete(userId);
@@ -69,6 +69,23 @@ const setupSocket = (server) => {
         }
     };
 
+    const deleteMessageSocket = async (deletePayload) => {
+        try {
+            const deletedMessage = await deleteMessage(deletePayload.id);
+            const senderSocketId = userSocketMap.get(deletedMessage.senderId);
+            const recipientSocketId = userSocketMap.get(deletedMessage.recipientId);
+
+            if (senderSocketId) {
+                io.to(senderSocketId).emit("messageDeleted", deletedMessage);
+            }
+            if (recipientSocketId && recipientSocketId !== senderSocketId) {
+                io.to(recipientSocketId).emit("messageDeleted", deletedMessage);
+            }
+        } catch (error) {
+            console.error("Error deleteing message:", error.message);
+        }
+    };
+
     io.on("connection", (socket) => {
         const userId = socket.handshake.query.userId;
 
@@ -82,12 +99,14 @@ const setupSocket = (server) => {
             // Send current online users to the newly connected user
             const onlineUsers = Array.from(userSocketMap.keys());
             socket.emit("onlineUsers", onlineUsers);
-        } else {
-            console.log("User ID not provided during connection");
         }
+        //  else {
+        //     console.log("User ID not provided during connection");
+        // }
 
         socket.on("sendMessage", sendMessage);
         socket.on("editMessage", editMessage);
+        socket.on("deleteMessage", deleteMessageSocket);
 
         socket.on("disconnect", () => disconnect(socket));
     });
