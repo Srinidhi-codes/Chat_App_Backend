@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-const { createMessage, updateMessage, deleteMessage } = require("./services/messageService");
+const { createMessage, updateMessage, deleteMessage, addOrUpdateReaction } = require("./services/messageService");
 
 const setupSocket = (server) => {
     const io = new Server(server, {
@@ -86,6 +86,34 @@ const setupSocket = (server) => {
         }
     };
 
+    const addOrUpdateReactionSocket = async (payload) => {
+        try {
+            // Map emoji to type
+            const reactionPayload = {
+                messageId: payload.messageId,
+                userId: payload.userId,
+                type: payload.type,
+            };
+
+            const reactionData = await addOrUpdateReaction(reactionPayload);
+
+            const { senderId, recipientId } = reactionData;
+
+            const senderSocketId = userSocketMap.get(senderId);
+            const recipientSocketId = userSocketMap.get(recipientId);
+
+            if (senderSocketId) {
+                io.to(senderSocketId).emit("messageReactionUpdated", reactionData);
+            }
+            if (recipientSocketId && recipientSocketId !== senderSocketId) {
+                io.to(recipientSocketId).emit("messageReactionUpdated", reactionData);
+            }
+        } catch (error) {
+            console.error("Error adding/updating reaction message:", error.message);
+            return [];
+        }
+    };
+
     io.on("connection", (socket) => {
         const userId = socket.handshake.query.userId;
 
@@ -107,6 +135,7 @@ const setupSocket = (server) => {
         socket.on("sendMessage", sendMessage);
         socket.on("editMessage", editMessage);
         socket.on("deleteMessage", deleteMessageSocket);
+        socket.on("reactToMessage", addOrUpdateReactionSocket);
 
         socket.on("disconnect", () => disconnect(socket));
     });

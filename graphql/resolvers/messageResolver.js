@@ -1,6 +1,6 @@
 const prisma = require('../../config/database');
 const getAuthenticatedUser = require('../../helper/authHelper');
-const { createMessage, updateMessage } = require('../../services/messageService');
+const { createMessage, updateMessage, addOrUpdateReaction } = require('../../services/messageService');
 
 const messagesResolver = {
     Query: {
@@ -60,11 +60,16 @@ const messagesResolver = {
                     },
                     orderBy: {
                         createdAt: 'asc'
+                    },
+                    include: {
+                        reaction: true, // Include reactions from DB
                     }
                 });
                 return messages.map(msg => ({
                     ...msg,
                     createdAt: msg.createdAt.toISOString(),
+                    updatedAt: msg.updatedAt.toISOString(),
+                    reactions: msg.reaction || [],
                 }));
             } catch (error) {
                 throw new Error(error.message);
@@ -78,6 +83,9 @@ const messagesResolver = {
         },
         async updateMessage(_, { input }, { req }) {
             return await updateMessage(input);
+        },
+        async addOrUpdateReaction(_, { input }, { req }) {
+            return await addOrUpdateReaction(input);
         },
     },
 };
