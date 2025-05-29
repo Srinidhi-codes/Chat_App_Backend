@@ -42,7 +42,7 @@ async function deleteMessage(id) {
 }
 
 async function toggleReaction({ messageId, userId, type }) {
-    // Check if reaction exists
+    // Check if user already reacted to this message
     const existingReaction = await prisma.reaction.findUnique({
         where: {
             messageId_userId: { messageId, userId },
@@ -50,19 +50,31 @@ async function toggleReaction({ messageId, userId, type }) {
     });
 
     if (existingReaction) {
-        // Reaction exists: delete it (toggle off)
-        await prisma.reaction.delete({
-            where: { id: existingReaction.id },
-        });
-        return { toggledOff: true, reaction: existingReaction };
+        if (existingReaction.type === type) {
+            // Toggle off (same type)
+            await prisma.reaction.delete({
+                where: { id: existingReaction.id },
+            });
+            return { toggledOff: true, reaction: existingReaction };
+        } else {
+            // Replace existing reaction with new type
+            await prisma.reaction.delete({
+                where: { id: existingReaction.id },
+            });
+            const newReaction = await prisma.reaction.create({
+                data: { messageId, userId, type },
+            });
+            return { toggledOff: false, reaction: newReaction };
+        }
     } else {
-        // Reaction doesn't exist: create it (toggle on)
+        // No existing reaction — create new one
         const newReaction = await prisma.reaction.create({
             data: { messageId, userId, type },
         });
         return { toggledOff: false, reaction: newReaction };
     }
 }
+
 
 
 async function addOrUpdateReaction(input) {
