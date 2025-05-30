@@ -15,15 +15,19 @@ datasource db {
 }
 
 model user {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  password     String
-  firstName    String?
-  lastName     String?
-  image        String?
-  color        Int?
-  profileSetup Boolean? @default(false)
-  createdAt    DateTime @default(now())
+  id               String   @id @default(uuid())
+  email            String   @unique
+  password         String
+  firstName        String?
+  lastName         String?
+  image            String?
+  color            Int?
+  resetToken       String?
+  resetTokenExpiry BigInt?
+  otp              String?
+  otpExpiry        BigInt?
+  profileSetup     Boolean? @default(false)
+  createdAt        DateTime @default(now())
 
   messagesSent     messages[] @relation("MessagesSent")
   messagesReceived messages[] @relation("MessagesReceived")

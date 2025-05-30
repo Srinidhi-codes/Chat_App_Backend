@@ -23,12 +23,30 @@ type LogoutResponse {
   message: String!
 }
 
+input AuthInput {
+  email: String!
+  password: String!
+}
+
+input ResendOtpInput {
+  email: String!
+}
+
+type MessageResponse {
+  message: String!
+}
+
+
 type Query {
   getAuthInfo: AuthResponse
 }
 
 type Mutation {
-  signUp(input: SignUpInput!): AuthResponse
-  login(input: LoginInput!): AuthResponse
+  initSignUp(input: AuthInput!): MessageResponse!
+  initLogin(input: AuthInput!): MessageResponse!
+  resendOtp(input: ResendOtpInput!): MessageResponse!
+  verifyOtp(email: String!, otp: String!): AuthResponse!
   logout: LogoutResponse!
+  forgotPassword(email: String!): String!
+  resetPassword(token: String!, newPassword: String!): String!
 }
