@@ -99,6 +99,50 @@ async function addOrUpdateReaction(input) {
     };
 }
 
+async function createChannelMessage(input) {
+    const { senderId, channelId, content, messageType, fileUrl = null } = input;
+
+    // Create the message associated with a channel
+    const createdMessage = await prisma.messages.create({
+        data: {
+            senderId,
+            channelId,
+            content,
+            messageType,
+            fileUrl,
+        },
+        include: {
+            sender: {
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    image: true,
+                    color: true
+                }
+            },
+            channel: {
+                include: {
+                    members: {
+                        select: {
+                            id: true,
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                            image: true,
+                            color: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    return createdMessage;
+}
 
 
-module.exports = { createMessage, updateMessage, deleteMessage, addOrUpdateReaction };
+
+
+module.exports = { createMessage, updateMessage, deleteMessage, addOrUpdateReaction, createChannelMessage };

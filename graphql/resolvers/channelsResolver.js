@@ -1,5 +1,6 @@
 const prisma = require('../../config/database');
 const getAuthenticatedUser = require('../../helper/authHelper');
+const { createChannelMessage } = require('../../services/messageService');
 
 const channelsResolver = {
     Query: {
@@ -56,6 +57,57 @@ const channelsResolver = {
                 throw new Error(error.message);
             }
         },
+
+        async getChannelMessages(_, { input }, { req }) {
+            try {
+                const { id: userId } = getAuthenticatedUser(req);
+                const { channelId } = input;
+
+                if (!channelId) throw new Error("Channel ID is required");
+
+                const channel = await prisma.channel.findUnique({
+                    where: { id: channelId },
+                    include: {
+                        members: true,
+                        admin: true,
+                        messages: {
+                            orderBy: { createdAt: 'asc' },
+                            include: {
+                                sender: {
+                                    select: {
+                                        id: true,
+                                        email: true,
+                                        firstName: true,
+                                        lastName: true,
+                                        image: true,
+                                        color: true
+                                    }
+                                },
+                                reaction: true,
+                            },
+                        },
+                    },
+                });
+
+                if (!channel) throw new Error("Channel not found");
+                if (
+                    channel.adminId !== userId &&
+                    !channel.members.some(member => member.id === userId)
+                ) {
+                    throw new Error("Access denied");
+                }
+
+                return channel.messages.map(msg => ({
+                    ...msg,
+                    createdAt: msg.createdAt.toISOString(),
+                    updatedAt: msg.updatedAt.toISOString(),
+                    reactions: msg.reaction || [],
+                }));
+            } catch (error) {
+                throw new Error(error.message);
+            }
+        }
+
     },
 
     Mutation: {
@@ -106,6 +158,9 @@ const channelsResolver = {
                 throw new Error(error.message);
             }
         },
+    },
+    async createChannelMessage(_, { input }, { req }) {
+        return await createChannelMessage(input);
     },
 };
 

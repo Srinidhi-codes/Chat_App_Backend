@@ -1,5 +1,5 @@
 const { Server } = require("socket.io");
-const { createMessage, updateMessage, deleteMessage, addOrUpdateReaction } = require("./services/messageService");
+const { createMessage, updateMessage, deleteMessage, addOrUpdateReaction, createChannelMessage } = require("./services/messageService");
 
 const setupSocket = (server) => {
     const io = new Server(server, {
@@ -48,7 +48,7 @@ const setupSocket = (server) => {
                 io.to(senderSocketId).emit("receiveMessage", messageData);
             }
         } catch (error) {
-            console.error("Error sending message:", error.message);
+            // console.error("Error sending message:", error.message);
         }
     };
 
@@ -65,7 +65,7 @@ const setupSocket = (server) => {
                 io.to(recipientSocketId).emit("messageEdited", updatedMessage);
             }
         } catch (error) {
-            console.error("Error editing message:", error.message);
+            // console.error("Error editing message:", error.message);
         }
     };
 
@@ -82,9 +82,49 @@ const setupSocket = (server) => {
                 io.to(recipientSocketId).emit("messageDeleted", deletedMessage);
             }
         } catch (error) {
-            console.error("Error deleteing message:", error.message);
+            // console.error("Error deleteing message:", error.message);
         }
     };
+
+    const sendChannelMessage = async (message) => {
+        const { channelId, sender, content, messageType, fileUrl = null } = message;
+
+        const input = {
+            senderId: sender,
+            channelId,
+            content,
+            messageType,
+            fileUrl,
+        };
+
+        try {
+            const messageData = await createChannelMessage(input);
+
+            // Make sure channel and members exist
+            if (messageData.channel && Array.isArray(messageData.channel.members)) {
+                const members = messageData.channel.members;
+
+                members.forEach(member => {
+                    // Don't send to sender here; we emit to sender separately below
+                    if (member.id.toString() !== sender.toString()) {
+                        const memberSocketId = userSocketMap.get(member.id.toString());
+                        if (memberSocketId) {
+                            io.to(memberSocketId).emit("receiveChannelMessage", messageData);
+                        }
+                    }
+                });
+            }
+
+            // Also emit back to the sender
+            const senderSocketId = userSocketMap.get(sender.toString());
+            if (senderSocketId) {
+                io.to(senderSocketId).emit("receiveChannelMessage", messageData);
+            }
+        } catch (error) {
+            // console.error("Error sending channel message:", error.message);
+        }
+    };
+
 
     const addOrUpdateReactionSocket = async (payload) => {
         try {
@@ -109,7 +149,7 @@ const setupSocket = (server) => {
                 io.to(recipientSocketId).emit("messageReactionUpdated", reactionData);
             }
         } catch (error) {
-            console.error("Error adding/updating reaction message:", error.message);
+            // console.error("Error adding/updating reaction message:", error.message);s
             return [];
         }
     };
@@ -119,7 +159,7 @@ const setupSocket = (server) => {
 
         if (userId) {
             userSocketMap.set(userId, socket.id);
-            console.log(`User connected with userId: ${userId} & socketId: ${socket.id}`);
+            // console.log(`User connected with userId: ${userId} & socketId: ${socket.id}`);
 
             // Notify all clients that this user is online
             io.emit("userOnline", userId);
@@ -136,6 +176,7 @@ const setupSocket = (server) => {
         socket.on("editMessage", editMessage);
         socket.on("deleteMessage", deleteMessageSocket);
         socket.on("reactToMessage", addOrUpdateReactionSocket);
+        socket.on("sendChannelMessage", sendChannelMessage);
 
         socket.on("disconnect", () => disconnect(socket));
     });

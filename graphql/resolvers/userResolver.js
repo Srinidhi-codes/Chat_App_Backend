@@ -15,7 +15,7 @@ const userResolver = {
 
                 return { ...user };
             } catch (error) {
-                console.error(error);
+                // console.error(error);
                 throw new Error(error.message);
             }
         }
@@ -30,7 +30,7 @@ const userResolver = {
                 if (!firstName || !lastName || color === undefined) {
                     throw new Error('Firstname, Lastname & Color fields are required.');
                 }
-                console.log("Updating user with id:", id);
+                // console.log("Updating user with id:", id);
 
                 const updatedUser = await prisma.user.update({
                     where: { id },
@@ -45,7 +45,7 @@ const userResolver = {
 
                 return { ...updatedUser };
             } catch (error) {
-                console.error(error);
+                // console.error(error);
                 throw new Error(error.message);
             }
         },

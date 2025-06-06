@@ -68,7 +68,7 @@ const contactsResolver = {
                 throw new Error(error.message);
             }
         },
-        async getContactsForDMList(_, { input }, { req }) {
+        async getContactsForDMList(_, __, { req }) {
             try {
                 const { id: senderId } = getAuthenticatedUser(req);
 
@@ -85,13 +85,16 @@ const contactsResolver = {
                     }
                 });
 
-                // Create a map to get latest message per contact
+                // Create a map to get the latest message per contact
                 const contactMap = new Map();
 
                 for (const message of messages) {
                     const otherUserId = message.senderId === senderId
                         ? message.recipientId
                         : message.senderId;
+
+                    // Skip if null or same as sender
+                    if (!otherUserId || otherUserId === senderId) continue;
 
                     if (!contactMap.has(otherUserId)) {
                         contactMap.set(otherUserId, {
@@ -103,6 +106,8 @@ const contactsResolver = {
 
                 const contactsWithInfo = await Promise.all(
                     Array.from(contactMap.values()).map(async (contact) => {
+                        if (!contact.id) return null; // Defensive check
+
                         const user = await prisma.user.findUnique({
                             where: { id: contact.id },
                             select: {
@@ -115,17 +120,22 @@ const contactsResolver = {
                             }
                         });
 
+                        if (!user) return null; // Skip if user not found
+
                         return {
                             ...user,
-                            lastMessageTime: contact.lastMessageTime.toISOString() // convert Date to string
+                            lastMessageTime: contact.lastMessageTime.toISOString()
                         };
                     })
                 );
 
-                // Sort by most recent message time
-                contactsWithInfo.sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+                // Filter out any null results
+                const validContacts = contactsWithInfo.filter(Boolean);
 
-                return contactsWithInfo;
+                // Sort by most recent message time
+                validContacts.sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+
+                return validContacts;
             } catch (error) {
                 throw new Error(error.message);
             }

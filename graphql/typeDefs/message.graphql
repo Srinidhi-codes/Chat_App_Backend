@@ -15,7 +15,6 @@ type Message {
   updatedAt: String
   senderId: String!
   recipientId: String!
-  content: String
   edited: Boolean!
   reactions: [Reaction]
 }
