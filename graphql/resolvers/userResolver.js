@@ -25,7 +25,7 @@ const userResolver = {
         async updateUserInfo(_, { input }, { req }) {
             try {
                 const { id } = getAuthenticatedUser(req);
-                const { firstName, lastName, color, image } = input;
+                const { firstName, lastName, color, image, theme } = input;
 
                 if (!firstName || !lastName || color === undefined) {
                     throw new Error('Firstname, Lastname & Color fields are required.');
@@ -39,7 +39,8 @@ const userResolver = {
                         lastName,
                         image,
                         color,
-                        profileSetup: true
+                        profileSetup: true,
+                        theme
                     },
                 });
 

@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  // output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -26,6 +26,7 @@ model user {
   resetTokenExpiry BigInt?
   otp              String?
   otpExpiry        BigInt?
+  theme            String   @default("dark")
   profileSetup     Boolean? @default(false)
   createdAt        DateTime @default(now())
 
